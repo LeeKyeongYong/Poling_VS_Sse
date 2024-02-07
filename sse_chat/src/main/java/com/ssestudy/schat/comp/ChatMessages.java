@@ -1,4 +1,4 @@
-package com.example.schat.comp;
+package com.ssestudy.schat.comp;
 
 public class ChatMessages {
 }

@@ -1,4 +1,4 @@
-package com.example.schat.controller;
+package com.ssestudy.schat.controller;
 
 public class ChatController {
 }

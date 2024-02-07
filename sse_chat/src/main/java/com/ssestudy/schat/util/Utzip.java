@@ -1,4 +1,4 @@
-package com.example.schat.util;
+package com.ssestudy.schat.util;
 
 public class Utzip {
 }

@@ -1,4 +1,4 @@
-package com.example.schat;
+package com.ssestudy.schat;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

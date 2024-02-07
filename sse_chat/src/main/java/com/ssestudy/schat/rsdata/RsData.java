@@ -1,4 +1,4 @@
-package com.example.schat.rsdata;
+package com.ssestudy.schat.rsdata;
 
 public class RsData {
 }
