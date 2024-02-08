@@ -1,7 +1,9 @@
 package com.ssestudy.schat.controller;
 
 import com.ssestudy.schat.comp.ChatMessage;
+import com.ssestudy.schat.comp.SseEmitters;
 import com.ssestudy.schat.rsdata.RsData;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +15,10 @@ import java.util.stream.IntStream;
 @Controller
 @Slf4j
 @RequestMapping("/chat")
+@RequiredArgsConstructor
 public class ChatController {
+
+    private final SseEmitters sseEmitters;
 
     private List<ChatMessage> chatMessages = new ArrayList<>();
 
@@ -29,6 +34,7 @@ public class ChatController {
     public RsData<WriteMessageResponse> writeMessage(@RequestBody WriteMessageRequest req){
         ChatMessage message = new ChatMessage(req.authrName(),req.content());
         chatMessages.add(message);
+        sseEmitters.noti("chat__messageAdded");
         return new RsData<>(
                 "S-1",
                 "메세지가 작성되었습니다.",
