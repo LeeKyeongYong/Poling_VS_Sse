@@ -17,6 +17,7 @@
 
                 </ul>
             </div>
+        <button onclick="Chat__loadMore();">로그</button>
     </div>
     <script>
         function fetchPost(url,data){
@@ -72,6 +73,41 @@
             form.content.value=''
             form.content.focus();
         }
+
+        //채팅 메세지 작성 끔
+
+        //채팅 메세지를 읽기 시작
+        //현재 클라이언트가 받은 메세지 번호를 입력해야한다.
+        //그래야 메세지 요청시 필요한 부분 가져오게 된다.
+
+        let Chat__lastLoadedId = 0;
+
+        function Chat__loadMore(){
+            fetchGet("/chat/messages",{
+                formId: Chat__lastLoadedId
+            })
+                .then(body=>{
+                   Chat__drawMessages(body.data.messages);
+                });
+        }
+
+        const Chat__elMessageUl = document.querySelector('.chat__message-ul');
+
+        function Chat__drawMessages(messages){
+            if(messages.length==0) return;
+            
+            //메세지를 그리기 전에 Chat__lastLoadedUuid 변수를 갱신한다.
+
+            Chat__lastLoadedId = messages[messagess.length -1].id;
+
+            messages.fetEach((message)=>{
+               Chat__elMessageUl
+                   .insertAdjacentHTML("afterBegin",
+                    `<li>${message.authorName} : ${message.content}</li>`
+                   );
+            });
+        }
+        //채팅 메세지를 읽기 끝
     </script>
 </body>
 </html>
