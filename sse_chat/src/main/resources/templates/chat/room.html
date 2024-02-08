@@ -105,11 +105,16 @@
                     `<li>${message.authorName} : ${message.content}</li>`
                    );
             });
-            //Chat__loadMore(); //즉시 실행
-            setTimeout(Chat__loadMore,500); //지금은 아니고 0.5초 후에 실행하게됨
+
+
         }
 
         Chat__loadMore();
+
+        const see =new EventSource("/sse/connect");
+        see.addEventListener('chat__messageAdded',e=>{
+            Chat__loadMore();
+        });
 
         //채팅 메세지를 읽기 끝
     </script>
