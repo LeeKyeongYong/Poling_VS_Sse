@@ -1,11 +1,13 @@
 package com.ssestudy.schat.controller;
 
 import com.ssestudy.schat.comp.ChatMessage;
+import com.ssestudy.schat.comp.ChatMessages;
 import com.ssestudy.schat.comp.SseEmitters;
 import com.ssestudy.schat.rsdata.RsData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -20,7 +22,7 @@ public class ChatController {
 
     private final SseEmitters sseEmitters;
 
-    private List<ChatMessage> chatMessages = new ArrayList<>();
+    private final ChatMessages chatMessages;
 
     public record WriteMessageResponse(long id){}
 
@@ -29,12 +31,15 @@ public class ChatController {
     public record MessageRequest(Long formId){}
     private record MessagesResponse(List<ChatMessage> messages,long count){}
 
-    @PostMapping("/writeMessage")
+    @PostMapping("/{roomId}/writeMessage")
     @ResponseBody
-    public RsData<WriteMessageResponse> writeMessage(@RequestBody WriteMessageRequest req){
+    public RsData<WriteMessageResponse> writeMessage(@PathVariable Long roomId,@RequestBody WriteMessageRequest req){
         ChatMessage message = new ChatMessage(req.authrName(),req.content());
-        chatMessages.add(message);
-        sseEmitters.noti("chat__messageAdded");
+        chatMessages.add(roomId,message);
+
+        String groupKey = "chatRoom__"+roomId;
+        sseEmitters.noti(groupKey,"chat__messageAdded");
+
         return new RsData<>(
                 "S-1",
                 "메세지가 작성되었습니다.",
@@ -42,47 +47,22 @@ public class ChatController {
         );
     }
 
-    @GetMapping("/messages")
+    @GetMapping("/{roomId}/messages")
     @ResponseBody
-    public RsData<MessagesResponse> messages(MessageRequest req){
+    public RsData<MessagesResponse> messages(@PathVariable Long roomId,MessageRequest req){
 
-        List<ChatMessage> messages = chatMessages;
-
-        //번호가 입력되었다면
-        if(req.formId != null){
-            //해당 번호의 채팅 메세지가 전체 리스트에서의 배열인덱스 번호를 구한다.
-            //없다면 -1
-            int index = IntStream.range(0,messages.size())
-                    .filter(i -> chatMessages.get(i).getId() == req.formId)
-                    .findFirst()
-                    .orElse(-1);
-
-            /*
-                    int foundIndex -1;
-                    for(int i=0; i< message.size(); i++){
-                        if(messages.get(i).getId() == req.formId){
-                            foundIndex = i;
-                            break;
-                        }
-                    }
-
-             */
-
-            if(index != -1) {
-                //만약에 index가 있다면,0번 부터 index 번 까지 제거한 리스트를 만든다.
-                messages = messages.subList(index + 1, messages.size());
-            }
-        }
+        List<ChatMessage> messages = chatMessages.from(roomId,req.formId);
 
         return new RsData<>(
                     "S-1",
                     "성공",
-                    new MessagesResponse(chatMessages,chatMessages.size())
+                    new MessagesResponse(messages,messages.size())
                 );
     }
 
-    @GetMapping("/room")
-    public String showRoom(){
+    @GetMapping("/{roomId}/room")
+    public String showRoom(@PathVariable Long roomId, Model model){
+        model.addAttribute("roomId",roomId);
         return "chat/room";
     }
 }

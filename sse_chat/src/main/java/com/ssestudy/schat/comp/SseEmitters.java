@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -15,36 +16,40 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 public class SseEmitters {
 
-    private final List<SseEmitters> emitters =new CopyOnWriteArrayList<>();
+    private final HashMap<String,List<SseEmitter>> emitters = new HashMap<>();
 
-    public SseEmitters add(SseEmitter emitter){
+    public SseEmitter add(String groupKey, SseEmitter emitter) {
 
-        this.emitters.add(emitter);
-        emitter.onCompletion(()->{
-            this.emitters.remove(emitter);
+        if (!emitters.containsKey(groupKey)) {
+            emitters.put(groupKey, new CopyOnWriteArrayList<>());
+        }
+
+        emitters.get(groupKey).add(emitter);
+
+        emitter.onCompletion(() -> {
+            emitters.get(groupKey).remove(emitter);
         });
 
-        emitter.onTimeout(()->{
-            emitter.complete();
-        });
+        emitter.onTimeout(emitter::complete);
 
         return emitter;
     }
 
-    public void noti(String eventName){
-        noti(eventName, Utzip.mapOf());
+    public void noti(String groupKey, String eventName){
+        noti(groupKey,eventName, Utzip.mapOf());
     }
 
-    public void noti(String eventName, Map<String,Object> data){
-        emitters.forEach(emitter->{
-            try{
+    public void noti(String groupKey, String eventName, Map<String, Object> data) {
+        emitters.get(groupKey).forEach(emitter -> {
+            try {
                 emitter.send(
                         SseEmitter.event()
                                 .name(eventName)
                                 .data(data)
                 );
-            }catch(ClientAbortException e){}
-            catch(IOException e){
+            } catch (ClientAbortException e) {
+
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });

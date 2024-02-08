@@ -6,10 +6,14 @@
 </head>
 <body>
 
+<script th:inline="javascript">
+    const roomId = [[${roomId}]];
+</script>
     <div class="chat">
             <form class="chat__write-message" onsubmit="chat__writeMessage(this); return false;">
-                <input type="text" placeholder="작성자" name="authorName">
-                <input type="text" placeholder="내용을 입력해주세요." name="content">
+                <input type="hidden" name="roomId" th:value="${roomId}">
+                <input type="text" placeholder="작성자" name="authorName" autocomplete="off">
+                <input type="text" placeholder="내용을 입력해주세요." name="content" autocomplete="off">
                 <input type="submit" value="작성">
             </form>
             <div class="chat__message-box">
@@ -83,7 +87,7 @@
         let Chat__lastLoadedId = 0;
 
         function Chat__loadMore(){
-            fetchGet("/chat/messages",{
+            fetchGet(`/chat/${roomId}/messages`, {
                 formId: Chat__lastLoadedId
             })
                 .then(body=>{
@@ -113,7 +117,7 @@
         // SSE연결
         // SSE는 단방향 무전기
         // 방향 : 서버 -> 클라이언트
-        const see =new EventSource("/sse/connect");
+        const see =new EventSource(`/sse/connect/chatRoom__${roomId}`);
 
         //서버로부터 "chat__messageAdded"라는 명령어 내려오면 Chat__loadMore 함수를 실행
         see.addEventListener('chat__messageAdded',e=>{
