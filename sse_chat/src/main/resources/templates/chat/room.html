@@ -17,7 +17,7 @@
 
                 </ul>
             </div>
-        <button onclick="Chat__loadMore();">로그</button>
+
     </div>
     <script>
         function fetchPost(url,data){
@@ -94,10 +94,9 @@
         const Chat__elMessageUl = document.querySelector('.chat__message-ul');
 
         function Chat__drawMessages(messages){
-            if(messages.length==0) return;
+            if(messages.length > 0) return;
             
             //메세지를 그리기 전에 Chat__lastLoadedUuid 변수를 갱신한다.
-
             Chat__lastLoadedId = messages[messagess.length -1].id;
 
             messages.fetEach((message)=>{
@@ -106,7 +105,12 @@
                     `<li>${message.authorName} : ${message.content}</li>`
                    );
             });
+            //Chat__loadMore(); //즉시 실행
+            setTimeout(Chat__loadMore,500); //지금은 아니고 0.5초 후에 실행하게됨
         }
+
+        Chat__loadMore();
+
         //채팅 메세지를 읽기 끝
     </script>
 </body>
