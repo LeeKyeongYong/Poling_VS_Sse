@@ -2,9 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>궁금하면 SSE공부하기</title>
 </head>
 <body>
 
+    <div class="chat">
+            <form class="chat__write-message" onsubmit="chat__writeMessage(this); return false;">
+                <input type="text" placeholder="작성자" name="authorName">
+                <input type="text" placeholder="내용을 입력해주세요." name="content">
+                <input type="submit" value="작성">
+            </form>
+            <div class="chat__message-box">
+                <ul class="chat__message-ul">
+
+                </ul>
+            </div>
+    </div>
+    <script>
+        function fetchPost(url,data){
+            return fetch(url,{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Accept":"applicaiton/json"
+                },
+                body:JSON.stringify(data),
+            })
+                .then(response => response.json())
+        }
+
+        function fetchGet(url,data){
+            let query = Object.keys(data)
+                .map(k => encodeURIComponent(k)+'='+encodeURIComponent(data[k]))
+                .join('&');
+
+            return fetch(url+"?"+query,{
+                method:"GET",
+                headers:{
+                    "Content-Type":"applicatio/json",
+                    "Accept":"applicaiton/json"
+                }
+            })
+                .then(response => response.json())
+        }
+    </script>
+    <script>
+        function Chat__writeMessage(form){
+            form.authorName.value = form.authorName.value.trim();
+
+            if(form.authorName.value.length == 0){
+
+                alert("작성자를 입력해주세요.");
+                form.authorName.focus();
+                return;
+            }
+
+            form.content.value = form.content.value.trim();
+
+            if(form.content.value.length == 0){
+                form.content.focus();
+                return;
+            }
+
+            fetchPost("/chat/writeMessage",{
+                authorName: form.authorName.value,
+                content: form.content.value
+            }).then(console.log);
+
+            form.content.value=''
+            form.content.focus();
+        }
+    </script>
 </body>
 </html>

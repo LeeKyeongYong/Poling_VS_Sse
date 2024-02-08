@@ -51,6 +51,17 @@ public class ChatController {
                     .findFirst()
                     .orElse(-1);
 
+            /*
+                    int foundIndex -1;
+                    for(int i=0; i< message.size(); i++){
+                        if(messages.get(i).getId() == req.formId){
+                            foundIndex = i;
+                            break;
+                        }
+                    }
+
+             */
+
             if(index != -1) {
                 //만약에 index가 있다면,0번 부터 index 번 까지 제거한 리스트를 만든다.
                 messages = messages.subList(index + 1, messages.size());
@@ -62,5 +73,10 @@ public class ChatController {
                     "성공",
                     new MessagesResponse(chatMessages,chatMessages.size())
                 );
+    }
+
+    @GetMapping("/room")
+    public String showRoom(){
+        return "chat/room";
     }
 }
