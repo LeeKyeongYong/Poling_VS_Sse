@@ -15,8 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 @Slf4j
 public class SseEmitters {
-
-    private final HashMap<String,List<SseEmitter>> emitters = new HashMap<>();
+    private final HashMap<String, List<SseEmitter>> emitters = new HashMap<>();
 
     public SseEmitter add(String groupKey, SseEmitter emitter) {
 
@@ -35,8 +34,8 @@ public class SseEmitters {
         return emitter;
     }
 
-    public void noti(String groupKey, String eventName){
-        noti(groupKey,eventName, Utzip.mapOf());
+    public void noti(String groupKey, String eventName) {
+        noti(groupKey, eventName, Utzip.mapOf());
     }
 
     public void noti(String groupKey, String eventName, Map<String, Object> data) {

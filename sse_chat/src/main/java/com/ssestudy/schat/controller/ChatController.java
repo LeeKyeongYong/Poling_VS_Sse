@@ -19,26 +19,31 @@ import java.util.stream.IntStream;
 @RequestMapping("/chat")
 @RequiredArgsConstructor
 public class ChatController {
-
     private final SseEmitters sseEmitters;
 
     private final ChatMessages chatMessages;
 
-    public record WriteMessageResponse(long id){}
+    public record WriteMessageRequest(String authorName, String content) {
+    }
 
-    public record WriteMessageRequest(String authrName,String content){}
+    public record WriteMessageResponse(long id) {
+    }
 
-    public record MessageRequest(Long formId){}
-    private record MessagesResponse(List<ChatMessage> messages,long count){}
+    @GetMapping("/{roomId}/room")
+    public String showRoom(@PathVariable Long roomId, Model model) {
+        model.addAttribute("roomId", roomId);
+        return "chat/room";
+    }
 
     @PostMapping("/{roomId}/writeMessage")
     @ResponseBody
-    public RsData<WriteMessageResponse> writeMessage(@PathVariable Long roomId,@RequestBody WriteMessageRequest req){
-        ChatMessage message = new ChatMessage(req.authrName(),req.content());
-        chatMessages.add(roomId,message);
+    public RsData<WriteMessageResponse> writeMessage(@PathVariable Long roomId, @RequestBody WriteMessageRequest req) {
+        ChatMessage message = new ChatMessage(req.authorName(), req.content());
 
-        String groupKey = "chatRoom__"+roomId;
-        sseEmitters.noti(groupKey,"chat__messageAdded");
+        chatMessages.add(roomId, message);
+
+        String groupKey = "chatRoom__" + roomId;
+        sseEmitters.noti(groupKey, "chat__messageAdded");
 
         return new RsData<>(
                 "S-1",
@@ -47,22 +52,21 @@ public class ChatController {
         );
     }
 
-    @GetMapping("/{roomId}/messages")
-    @ResponseBody
-    public RsData<MessagesResponse> messages(@PathVariable Long roomId,MessageRequest req){
-
-        List<ChatMessage> messages = chatMessages.from(roomId,req.formId);
-
-        return new RsData<>(
-                    "S-1",
-                    "성공",
-                    new MessagesResponse(messages,messages.size())
-                );
+    public record MessagesRequest(Long fromId) {
     }
 
-    @GetMapping("/{roomId}/room")
-    public String showRoom(@PathVariable Long roomId, Model model){
-        model.addAttribute("roomId",roomId);
-        return "chat/room";
+    public record MessagesResponse(List<ChatMessage> messages, long count) {
+    }
+
+    @GetMapping("/{roomId}/messages")
+    @ResponseBody
+    public RsData<MessagesResponse> messages(@PathVariable Long roomId, MessagesRequest req) {
+        List<ChatMessage> messages = chatMessages.from(roomId, req.fromId);
+
+        return new RsData<>(
+                "S-1",
+                "성공",
+                new MessagesResponse(messages, messages.size())
+        );
     }
 }

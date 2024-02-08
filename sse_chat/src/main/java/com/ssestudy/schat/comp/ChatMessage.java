@@ -10,19 +10,20 @@ import java.time.LocalDateTime;
 @Getter
 public class ChatMessage {
     private long id;
-    @JsonFormat(shape = JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm:ss",timezone = "Asia/Seoul")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createDate;
     private String authorName;
     private String content;
 
-    public ChatMessage(String authorName,String content){
-        this(ChatMessageIdGenerator.genNextId(),LocalDateTime.now(),authorName,content);
+    public ChatMessage(String authorName, String content) {
+        this(ChatMessageIdGenerator.genNextId(), LocalDateTime.now(), authorName, content);
     }
 }
 
-class ChatMessageIdGenerator{
-    private static long id =0;
-    public static long genNextId(){
+class ChatMessageIdGenerator {
+    private static long id = 0;
+
+    public static long genNextId() {
         return ++id;
     }
 }

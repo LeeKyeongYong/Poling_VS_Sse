@@ -18,20 +18,21 @@ import java.io.IOException;
 @RequestMapping("/sse")
 @RequiredArgsConstructor
 public class SseController {
-
     private final SseEmitters sseEmitters;
 
-    @GetMapping(value="/connect/{groupKey}",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connect(@PathVariable String groupKey){
+    @GetMapping(value = "/connect/{groupKey}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public ResponseEntity<SseEmitter> connect(@PathVariable String groupKey) {
         SseEmitter emitter = new SseEmitter();
-        sseEmitters.add(groupKey,emitter);
-        try{
+        sseEmitters.add(groupKey, emitter);
+
+        try {
             emitter.send(SseEmitter.event()
                     .name("connect")
                     .data("connected!"));
-        }catch(IOException e){
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         return ResponseEntity.ok(emitter);
     }
 }

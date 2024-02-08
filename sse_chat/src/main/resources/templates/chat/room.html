@@ -9,122 +9,126 @@
 <script th:inline="javascript">
     const roomId = [[${roomId}]];
 </script>
-    <div class="chat">
-            <form class="chat__write-message" onsubmit="chat__writeMessage(this); return false;">
-                <input type="hidden" name="roomId" th:value="${roomId}">
-                <input type="text" placeholder="작성자" name="authorName" autocomplete="off">
-                <input type="text" placeholder="내용을 입력해주세요." name="content" autocomplete="off">
-                <input type="submit" value="작성">
-            </form>
-            <div class="chat__message-box">
-                <ul class="chat__message-ul">
 
-                </ul>
-            </div>
+<div class="chat">
+    <form class="chat__write-message" onsubmit="Chat__writeMessage(this); return false;">
+        <input type="hidden" name="roomId" th:value="${roomId}">
+        <input type="text" placeholder="작성자" name="authorName" autocomplete="off">
+        <input type="text" placeholder="내용을 입력해주세요." name="content" autocomplete="off">
+        <input type="submit" value="작성">
+    </form>
+    <div class="chat__message-box">
+        <ul class="chat__message-ul">
 
+        </ul>
     </div>
-    <script>
-        function fetchPost(url,data){
-            return fetch(url,{
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json",
-                    "Accept":"applicaiton/json"
-                },
-                body:JSON.stringify(data),
-            })
-                .then(response => response.json())
+</div>
+
+<script>
+    function fetchPost(url, data) {
+        return fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => response.json())
+    }
+
+    function fetchGet(url, data) {
+        let query = Object.keys(data)
+            .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(data[k]))
+            .join('&');
+
+        return fetch(url + "?" + query, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        })
+            .then(response => response.json())
+    }
+</script>
+
+<script>
+    // 채팅 메세지 작성 시작
+    function Chat__writeMessage(form) {
+        form.authorName.value = form.authorName.value.trim();
+
+        if (form.authorName.value.length == 0) {
+            alert("작성자를 입력해주세요.");
+            form.authorName.focus();
+
+            return;
         }
 
-        function fetchGet(url,data){
-            let query = Object.keys(data)
-                .map(k => encodeURIComponent(k)+'='+encodeURIComponent(data[k]))
-                .join('&');
+        form.content.value = form.content.value.trim();
 
-            return fetch(url+"?"+query,{
-                method:"GET",
-                headers:{
-                    "Content-Type":"applicatio/json",
-                    "Accept":"applicaiton/json"
-                }
-            })
-                .then(response => response.json())
-        }
-    </script>
-    <script>
-        function Chat__writeMessage(form){
-            form.authorName.value = form.authorName.value.trim();
-
-            if(form.authorName.value.length == 0){
-
-                alert("작성자를 입력해주세요.");
-                form.authorName.focus();
-                return;
-            }
-
-            form.content.value = form.content.value.trim();
-
-            if(form.content.value.length == 0){
-                form.content.focus();
-                return;
-            }
-
-            fetchPost("/chat/writeMessage",{
-                authorName: form.authorName.value,
-                content: form.content.value
-            }).then(console.log);
-
-            form.content.value=''
+        if (form.content.value.length == 0) {
             form.content.focus();
+
+            return;
         }
 
-        //채팅 메세지 작성 끔
+        fetchPost(`/chat/${roomId}/writeMessage`, {
+            authorName: form.authorName.value,
+            content: form.content.value
+        })
+            .then(console.log);
 
-        //채팅 메세지를 읽기 시작
-        //현재 클라이언트가 받은 메세지 번호를 입력해야한다.
-        //그래야 메세지 요청시 필요한 부분 가져오게 된다.
+        form.content.value = '';
+        form.content.focus();
+    }
 
-        let Chat__lastLoadedId = 0;
+    // 채팅 메세지 작성 끝
 
-        function Chat__loadMore(){
-            fetchGet(`/chat/${roomId}/messages`, {
-                formId: Chat__lastLoadedId
-            })
-                .then(body=>{
-                   Chat__drawMessages(body.data.messages);
-                });
-        }
+    // 채팅 메세지들 읽기 시작
+    // 현재 클라이언트가 받은 메세지 번호를 입력해야 한다.
+    // 그래야 메세지 요청시에 필요한 부분만 가져온다.
+    let Chat__lastLoadedId = 0;
 
-        const Chat__elMessageUl = document.querySelector('.chat__message-ul');
-
-        function Chat__drawMessages(messages){
-            if(messages.length > 0) return;
-            
-            //메세지를 그리기 전에 Chat__lastLoadedUuid 변수를 갱신한다.
-            Chat__lastLoadedId = messages[messagess.length -1].id;
-
-            messages.fetEach((message)=>{
-               Chat__elMessageUl
-                   .insertAdjacentHTML("afterBegin",
-                    `<li>${message.authorName} : ${message.content}</li>`
-                   );
+    function Chat__loadMore() {
+        fetchGet(`/chat/${roomId}/messages`, {
+            fromId: Chat__lastLoadedId
+        })
+            .then(body => {
+                Chat__drawMessages(body.data.messages);
             });
+    }
 
+    const Chat__elMessageUl = document.querySelector('.chat__message-ul');
 
+    function Chat__drawMessages(messages) {
+        if (messages.length > 0) {
+            // 메세지를 그리기 전에 Chat__lastLoadedUuid 변수를 갱신 시킨다.
+            Chat__lastLoadedId = messages[messages.length - 1].id;
         }
 
-        Chat__loadMore();
-        // SSE연결
-        // SSE는 단방향 무전기
-        // 방향 : 서버 -> 클라이언트
-        const see =new EventSource(`/sse/connect/chatRoom__${roomId}`);
-
-        //서버로부터 "chat__messageAdded"라는 명령어 내려오면 Chat__loadMore 함수를 실행
-        see.addEventListener('chat__messageAdded',e=>{
-            Chat__loadMore();
+        messages.forEach((message) => {
+            Chat__elMessageUl
+                .insertAdjacentHTML(
+                    "afterBegin",
+                    `<li>${message.authorName} : ${message.content}</li>`
+                );
         });
+    }
 
-        //채팅 메세지를 읽기 끝
-    </script>
+    Chat__loadMore();
+
+    // SSE 연결
+    // SSE는 단방향 무전기
+    // 방향 : 서버 -> 클라이언트
+    const sse = new EventSource(`/sse/connect/chatRoom__${roomId}`);
+
+    // 서버로부터 "chat__messageAdded" 라는 명령이 내려오면 Chat__loadMore 함수를 실행
+    sse.addEventListener('chat__messageAdded', e => {
+        Chat__loadMore();
+    });
+
+    // 채팅 메시지들 읽기 끝
+</script>
 </body>
 </html>
